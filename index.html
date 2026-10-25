@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hadi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sky-top: #2e64ad;
+      --text: #fff;
+      --muted: rgba(255, 255, 255, 0.85);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--sky-top);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* The stage keeps the video's aspect ratio so the sky mask always lines up
+       with the band of baked-in text, whatever the window size. */
+    .stage {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: max(100vw, calc(100vh * 1902 / 1080));
+      aspect-ratio: 1902 / 1080;
+      z-index: 0;
+    }
+
+    .stage video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .stage .sky-mask,
+    .stage .tint,
+    .stage .stars { z-index: 3; }
+
+    /* Covers the original text in the video with matching sky. */
+    .stage .sky-mask {
+      position: absolute;
+      inset: 0;
+      /* Stops sampled from the video's sky as the browser renders it,
+         as % of the frame height. */
+      background: linear-gradient(
+        to bottom,
+        #2e64ad 0%,
+        #3168af 4.5%,
+        #3269b0 9%,
+        #366cb2 13.5%,
+        #3870b6 18%,
+        #3c73b7 22%,
+        #3e76b9 27%,
+        #4177b9 29%,
+        rgba(66, 120, 187, 0) 34%
+      );
+    }
+
+    /* Time of day: the whole stage (video + sky mask) is graded together so
+       the mask stays invisible, then a tint layer adds the light colour. */
+    .stage {
+      transition: filter 2s ease;
+    }
+
+    .stage .tint {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 2s ease, background 2s ease;
+    }
+
+    .stage .stars {
+      position: absolute;
+      inset: 0 0 45% 0;
+      opacity: 0;
+      transition: opacity 2s ease;
+      background-image:
+        radial-gradient(1px 1px at 12% 18%, #fff, transparent),
+        radial-gradient(1px 1px at 27% 42%, #fff, transparent),
+        radial-gradient(1.5px 1.5px at 38% 12%, #fff, transparent),
+        radial-gradient(1px 1px at 46% 55%, #fff, transparent),
+        radial-gradient(1px 1px at 58% 30%, #fff, transparent),
+        radial-gradient(1.5px 1.5px at 66% 8%, #fff, transparent),
+        radial-gradient(1px 1px at 73% 48%, #fff, transparent),
+        radial-gradient(1px 1px at 84% 22%, #fff, transparent),
+        radial-gradient(1.5px 1.5px at 91% 60%, #fff, transparent),
+        radial-gradient(1px 1px at 6% 66%, #fff, transparent),
+        radial-gradient(1px 1px at 19% 80%, #fff, transparent),
+        radial-gradient(1px 1px at 52% 75%, #fff, transparent),
+        radial-gradient(1px 1px at 97% 35%, #fff, transparent);
+      animation: twinkle 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      from { filter: brightness(0.7); }
+      to { filter: brightness(1.3); }
+    }
+
+    body { transition: background-color 2s ease; }
+
+    body[data-time="dawn"] { background-color: #5a6ab0; }
+    body[data-time="dawn"] .stage { filter: brightness(1.02) saturate(1.05); }
+    body[data-time="dawn"] .tint {
+      opacity: 0.5;
+      mix-blend-mode: color;
+      background: linear-gradient(to bottom, #5a6ab0 0%, #b89ad0 25%, #f4b2c0 45%, #ffd0a8 60%, transparent 78%);
+    }
+
+    body[data-time="sunset"] { background-color: #2e2a6a; }
+    body[data-time="sunset"] .stage { filter: saturate(1.3) brightness(0.92); }
+    body[data-time="sunset"] .tint {
+      opacity: 0.65;
+      mix-blend-mode: color;
+      background: linear-gradient(to bottom, #2e2a6a 0%, #7a3e94 22%, #e0607a 40%, #ff8a48 55%, #ffb060 66%, transparent 80%);
+    }
+
+    body[data-time="night"] { background-color: #070d22; }
+    body[data-time="night"] .stage { filter: brightness(0.62) saturate(0.8) hue-rotate(8deg); }
+    body[data-time="night"] .tint {
+      opacity: 1;
+      mix-blend-mode: multiply;
+      background: linear-gradient(to bottom, #1a2350 0%, #2a3a7a 60%, #3a4a80 100%);
+    }
+    body[data-time="night"] .stars { opacity: 1; }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 27.7% repeat(3, 21.2%);
+      padding: clamp(40px, 4.4vw, 84px) 5.5vw 0;
+    }
+
+    .brand .logo {
+      font-family: "Instrument Serif", serif;
+      font-weight: 400;
+      font-size: clamp(40px, 3.3vw, 64px);
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+
+    .brand .tagline {
+      margin-top: clamp(16px, 1.6vw, 30px);
+      font-size: clamp(15px, 1.1vw, 21px);
+      line-height: 1.45;
+      max-width: 20em;
+    }
+
+    .brand .copyright {
+      margin-top: clamp(16px, 1.6vw, 30px);
+      font-size: clamp(13px, 0.92vw, 17.5px);
+      color: var(--muted);
+      letter-spacing: 0.01em;
+    }
+
+    .col h2 {
+      font-family: "Instrument Serif", serif;
+      font-weight: 400;
+      font-size: clamp(26px, 1.95vw, 37px);
+      line-height: 1;
+      margin-bottom: clamp(20px, 2.1vw, 40px);
+    }
+
+    .col ul { list-style: none; }
+
+    .col li + li { margin-top: clamp(12px, 1.15vw, 22px); }
+
+    .col a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: clamp(15px, 1.1vw, 21px);
+      line-height: 1;
+      background-image: linear-gradient(currentColor, currentColor);
+      background-size: 0% 1.5px;
+      background-position: 0 100%;
+      background-repeat: no-repeat;
+      padding-bottom: 3px;
+      transition: background-size 0.3s ease;
+    }
+
+    .col a:hover,
+    .col a:focus-visible {
+      background-size: 100% 1.5px;
+      outline: none;
+    }
+
+    @media (max-width: 760px) {
+      footer {
+        grid-template-columns: repeat(3, 1fr);
+        row-gap: 28px;
+        column-gap: 12px;
+        padding: 36px 16px 0;
+      }
+      .brand { grid-column: 1 / -1; }
+      .col h2 { font-size: 22px; margin-bottom: 14px; }
+      .col a { font-size: 14px; }
+      .col li + li { margin-top: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .col a { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" aria-hidden="true">
+    <video src="inspo.mp4" autoplay muted playsinline></video>
+    <video src="inspo.mp4" muted playsinline preload="auto"></video>
+    <div class="sky-mask"></div>
+    <div class="tint"></div>
+    <div class="stars"></div>
+  </div>
+
+  <footer>
+    <div class="brand">
+      <div class="logo">hadi</div>
+      <p class="tagline">Your tagline goes here,<br>on two short lines</p>
+      <p class="copyright">© 2026 Hadi. All rights reserved.</p>
+    </div>
+
+    <nav class="col" aria-label="Work">
+      <h2>Work</h2>
+      <ul>
+        <li><a href="#">Projects</a></li>
+        <li><a href="#">Experiments</a></li>
+        <li><a href="#">Writing</a></li>
+        <li><a href="#">Resume</a></li>
+      </ul>
+    </nav>
+
+    <nav class="col" aria-label="About">
+      <h2>About</h2>
+      <ul>
+        <li><a href="#">About me</a></li>
+        <li><a href="#">Now</a></li>
+        <li><a href="#">Uses</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+
+    <nav class="col" aria-label="Social Media">
+      <h2>Social Media</h2>
+      <ul>
+        <li><a href="#">LinkedIn</a></li>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="https://github.com/HadiAlk4">GitHub</a></li>
+      </ul>
+    </nav>
+  </footer>
+
+  <script>
+    // Picks the scene from the visitor's local clock. Add ?time=night (or
+    // dawn / day / sunset) to the URL to preview a scene.
+    const override = new URLSearchParams(location.search).get("time");
+
+    function timeOfDay(hour) {
+      if (hour >= 5 && hour < 8) return "dawn";
+      if (hour >= 8 && hour < 17) return "day";
+      if (hour >= 17 && hour < 20) return "sunset";
+      return "night";
+    }
+
+    function update() {
+      document.body.dataset.time = override || timeOfDay(new Date().getHours());
+    }
+
+    update();
+    setInterval(update, 60 * 1000);
+
+    // The video powers the screen on, then drifts to dusk and switches off.
+    // Play the power-on once, then loop only the steady lit stretch,
+    // crossfading between two copies so the jump back isn't visible.
+    const LOOP_START = 0.7;
+    const LOOP_END = 2.7;
+    const FADE = 0.6;
+
+    let [front, back] = document.querySelectorAll(".stage video");
+    let fading = false;
+    front.style.zIndex = 1;
+    back.style.opacity = 0;
+    // Seek ahead of time so the incoming copy never shows a stale frame.
+    back.addEventListener("loadedmetadata", () => { back.currentTime = LOOP_START; }, { once: true });
+
+    function crossfade() {
+      fading = true;
+      back.play();
+      back.style.zIndex = 2;
+      back.style.transition = `opacity ${FADE}s linear`;
+      back.style.opacity = 1;
+
+      setTimeout(() => {
+        front.pause();
+        front.style.transition = "none";
+        front.style.opacity = 0;
+        front.style.zIndex = 1;
+        front.currentTime = LOOP_START;
+        [front, back] = [back, front];
+        fading = false;
+      }, FADE * 1000);
+    }
+
+    function tick() {
+      if (!fading && front.currentTime >= LOOP_END - FADE) crossfade();
+      requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
