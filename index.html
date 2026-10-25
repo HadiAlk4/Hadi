@@ -26,8 +26,8 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* The stage keeps the video's aspect ratio so the sky mask always lines up
-       with the band of baked-in text, whatever the window size. */
+    /* The stage keeps the scene's aspect ratio so the screen effects always
+       line up with the Mac, whatever the window size. */
     .stage {
       position: fixed;
       left: 50%;
@@ -36,38 +36,10 @@
       width: max(100vw, calc(100vh * 1902 / 1080));
       aspect-ratio: 1902 / 1080;
       z-index: 0;
+      transition: filter 2s ease;
     }
 
-    .stage video {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    body:not(.ready),
-    body:not(.ready) * { transition: none !important; }
-
-    .stage .ground { z-index: 3; }
-    .stage .sky-mask { z-index: 4; }
-    .stage .seeds { z-index: 5; }
-    .stage .tint,
-    .stage .stars { z-index: 6; }
-
-    /* A still frame of the hill laid over the loop, so the grass doesn't
-       snap back each time the loop restarts. Traced from the video, just
-       above the grass tips and along the base of the Mac. */
-    .stage .ground {
-      clip-path: polygon(
-        0% 96%, 4% 92.6%, 8% 91.6%, 12% 90.5%, 16% 86.6%, 20% 85.7%,
-        24% 83.3%, 28% 82.2%, 32% 82.7%, 36% 82%, 40% 82.9%, 60% 80.5%,
-        64% 79.6%, 68% 80.5%, 72% 81.6%, 76% 82.7%, 80% 82.9%, 84% 84.4%,
-        88% 87%, 92% 89.2%, 96% 91.3%, 100% 92.4%, 100% 100%, 0% 100%
-      );
-    }
-
-    .stage .seeds {
+    .stage > * {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -75,64 +47,88 @@
       pointer-events: none;
     }
 
-    /* Covers the original text in the video with matching sky. */
-    .stage .sky-mask {
-      position: absolute;
-      inset: 0;
-      /* Stops sampled from the video's sky as the browser renders it,
-         as % of the frame height. */
-      background: linear-gradient(
-        to bottom,
-        #2e64ad 0%,
-        #3168af 4.5%,
-        #3269b0 9%,
-        #366cb2 13.5%,
-        #3870b6 18%,
-        #3c73b7 22%,
-        #3e76b9 27%,
-        #4177b9 29%,
-        rgba(66, 120, 187, 0) 34%
-      );
+    body:not(.ready),
+    body:not(.ready) * { transition: none !important; }
+
+    /* A still of the scene with the sky cleaned up; everything that moves
+       is drawn on top. */
+    .stage .plate { object-fit: cover; }
+
+    /* The Mac's screen, traced from the plate. */
+    .crt {
+      left: 42.69%;
+      top: 49.07%;
+      width: 14.51%;
+      height: 22.41%;
+      right: auto;
+      bottom: auto;
+      border-radius: 14% / 16%;
+      overflow: hidden;
     }
 
-    /* Time of day: the whole stage (video + sky mask) is graded together so
-       the mask stays invisible, then a tint layer adds the light colour. */
-    .stage {
-      transition: filter 2s ease;
+    .crt > * {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .crt-noise {
+      mix-blend-mode: overlay;
+      opacity: 0.22;
+    }
+
+    .crt-roll {
+      background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.09) 45%, rgba(255, 255, 255, 0.14) 50%, transparent 60%);
+      background-size: 100% 300%;
+      mix-blend-mode: screen;
+      animation: roll 7s linear infinite;
+    }
+
+    @keyframes roll {
+      from { background-position: 0 100%; }
+      to { background-position: 0 0%; }
+    }
+
+    .crt-flash {
+      background: #fff;
+      mix-blend-mode: soft-light;
+      opacity: 0;
+    }
+
+    /* Glow that breathes with the flicker. */
+    .halo {
+      left: 39%;
+      top: 44%;
+      width: 22%;
+      height: 32%;
+      right: auto;
+      bottom: auto;
+      background: radial-gradient(closest-side, rgba(225, 205, 255, 0.35), rgba(200, 170, 255, 0.12) 60%, transparent);
+      mix-blend-mode: screen;
+      opacity: 0.6;
+    }
+
+    /* Power-on: dark glass, a bright line that opens to a white flash,
+       then the colour bars. Driven from the script. */
+    .crt-off { background: #0d0f16; }
+
+    .crt-line {
+      top: 50% !important;
+      height: 100%;
+      background: #fff;
+      box-shadow: 0 0 12px 4px rgba(255, 255, 255, 0.7);
+      transform: translateY(-50%) scaleY(0.012);
     }
 
     .stage .tint {
-      position: absolute;
-      inset: 0;
       opacity: 0;
       transition: opacity 2s ease, background 2s ease;
     }
 
-    .stage .stars {
-      position: absolute;
-      inset: 0 0 45% 0;
+    .stage .night {
       opacity: 0;
       transition: opacity 2s ease;
-      background-image:
-        radial-gradient(1px 1px at 12% 18%, #fff, transparent),
-        radial-gradient(1px 1px at 27% 42%, #fff, transparent),
-        radial-gradient(1.5px 1.5px at 38% 12%, #fff, transparent),
-        radial-gradient(1px 1px at 46% 55%, #fff, transparent),
-        radial-gradient(1px 1px at 58% 30%, #fff, transparent),
-        radial-gradient(1.5px 1.5px at 66% 8%, #fff, transparent),
-        radial-gradient(1px 1px at 73% 48%, #fff, transparent),
-        radial-gradient(1px 1px at 84% 22%, #fff, transparent),
-        radial-gradient(1.5px 1.5px at 91% 60%, #fff, transparent),
-        radial-gradient(1px 1px at 6% 66%, #fff, transparent),
-        radial-gradient(1px 1px at 19% 80%, #fff, transparent),
-        radial-gradient(1px 1px at 52% 75%, #fff, transparent),
-        radial-gradient(1px 1px at 97% 35%, #fff, transparent);
-      animation: twinkle 4s ease-in-out infinite alternate;
-    }
-
-    @keyframes twinkle {
-      from { filter: brightness(0.7); }
-      to { filter: brightness(1.3); }
     }
 
     body { transition: background-color 2s ease; }
@@ -160,7 +156,7 @@
       mix-blend-mode: multiply;
       background: linear-gradient(to bottom, #1a2350 0%, #2a3a7a 60%, #3a4a80 100%);
     }
-    body[data-time="night"] .stars { opacity: 1; }
+    body[data-time="night"] .night { opacity: 1; }
 
     footer {
       position: relative;
@@ -243,13 +239,18 @@
 </head>
 <body>
   <div class="stage" aria-hidden="true">
-    <video class="loop" src="inspo.mp4" autoplay muted playsinline></video>
-    <video class="loop" src="inspo.mp4" muted playsinline preload="auto"></video>
-    <video class="ground" src="inspo.mp4#t=1" muted playsinline preload="auto"></video>
-    <div class="sky-mask"></div>
+    <img class="plate" src="scene.jpg" alt="">
+    <div class="halo"></div>
+    <div class="crt">
+      <canvas class="crt-noise" width="160" height="120"></canvas>
+      <div class="crt-roll"></div>
+      <div class="crt-flash"></div>
+      <div class="crt-off"></div>
+      <div class="crt-line"></div>
+    </div>
     <canvas class="seeds"></canvas>
     <div class="tint"></div>
-    <div class="stars"></div>
+    <canvas class="night"></canvas>
   </div>
 
   <footer>
@@ -313,53 +314,71 @@
       document.body.classList.add("ready");
     }));
 
-    // The video powers the screen on, then drifts to dusk from 2.2s and
-    // switches off. Play the power-on once, then loop the stretch where the
-    // sky holds steady but the grass, seeds and screen keep moving,
-    // crossfading between two copies so the jump back isn't visible.
-    const LOOP_START = 1.0;
-    const LOOP_END = 2.15;
-    const FADE = 0.35;
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const rand = (min, max) => min + Math.random() * (max - min);
 
-    let [front, back] = document.querySelectorAll(".stage video.loop");
-    let fading = false;
-    front.style.zIndex = 1;
-    back.style.opacity = 0;
-    // Seek ahead of time so the incoming copy never shows a stale frame.
-    back.addEventListener("loadedmetadata", () => { back.currentTime = LOOP_START; }, { once: true });
+    // CRT flicker: live static, small brightness jitter and the odd dip, with
+    // the glow around the Mac breathing along. Never repeats.
+    const noise = document.querySelector(".crt-noise");
+    const nctx = noise.getContext("2d");
+    const noiseData = nctx.createImageData(noise.width, noise.height);
+    const flash = document.querySelector(".crt-flash");
+    const halo = document.querySelector(".halo");
+    let nextFlicker = 0;
 
-    function crossfade() {
-      fading = true;
-      back.play();
-      back.style.zIndex = 2;
-      back.style.transition = `opacity ${FADE}s linear`;
-      back.style.opacity = 1;
+    function crt(now) {
+      const px = noiseData.data;
+      for (let i = 0; i < px.length; i += 4) {
+        const v = Math.random() * 255;
+        px[i] = px[i + 1] = px[i + 2] = v;
+        px[i + 3] = 255;
+      }
+      nctx.putImageData(noiseData, 0, 0);
 
-      setTimeout(() => {
-        front.pause();
-        front.style.transition = "none";
-        front.style.opacity = 0;
-        front.style.zIndex = 1;
-        front.currentTime = LOOP_START;
-        [front, back] = [back, front];
-        fading = false;
-      }, FADE * 1000);
+      if (now >= nextFlicker) {
+        const dip = Math.random() < 0.06;
+        flash.style.background = dip ? "#000" : "#fff";
+        flash.style.opacity = dip ? rand(0.2, 0.35) : rand(0, 0.22);
+        halo.style.opacity = dip ? 0.4 : rand(0.5, 0.75);
+        nextFlicker = now + rand(50, 130);
+      }
+      requestAnimationFrame(crt);
     }
 
-    function tick() {
-      if (!fading && front.currentTime >= LOOP_END - FADE) crossfade();
-      requestAnimationFrame(tick);
+    // Power-on, played once per load: dark glass with a thin line, the line
+    // opens into a white flash, then the flash fades to the colour bars.
+    const off = document.querySelector(".crt-off");
+    const line = document.querySelector(".crt-line");
+    const ease = (p) => 1 - (1 - p) ** 3;
+    const clamp = (p) => Math.min(Math.max(p, 0), 1);
+    let powerStart = null;
+
+    function powerOn(now) {
+      powerStart ??= now;
+      const t = now - powerStart;
+      const open = ease(clamp((t - 350) / 270));
+      line.style.transform = `translateY(-50%) scaleY(${0.012 + open * 0.988})`;
+      line.style.opacity = 1 - clamp((t - 620) / 480);
+      off.style.opacity = 1 - clamp((t - 450) / 170);
+      halo.style.opacity = 0.6 * clamp((t - 350) / 550);
+
+      if (t < 1100) {
+        requestAnimationFrame(powerOn);
+      } else if (!reduceMotion) {
+        requestAnimationFrame(crt);
+      }
     }
 
-    requestAnimationFrame(tick);
+    halo.style.opacity = 0;
+    const plate = document.querySelector(".plate");
+    if (plate.complete) requestAnimationFrame(powerOn);
+    else plate.addEventListener("load", () => requestAnimationFrame(powerOn), { once: true });
 
-    // Dandelion seeds drifting over the video. Each follows its own random
-    // path so the scene never visibly repeats, which hides the short loop.
+    // Dandelion seeds drifting across the scene. Each follows its own random
+    // path so the scene never visibly repeats.
     const canvas = document.querySelector(".seeds");
     const ctx = canvas.getContext("2d");
-    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const SPRITE = 128;
-    const rand = (min, max) => min + Math.random() * (max - min);
 
     // A seed seen from below (side = false): fine filaments radiating from a
     // bright centre. Seen side-on (side = true): filaments fanned upward like
@@ -465,7 +484,7 @@
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = Math.round(14 * (width / 1600)) + 6;
+      const count = Math.round(22 * (width / 1600)) + 8;
       seeds = Array.from({ length: count }, () => makeSeed(false));
     }
 
@@ -503,6 +522,127 @@
     resize();
     new ResizeObserver(resize).observe(canvas);
     requestAnimationFrame(draw);
+
+    // Night sky: stars that twinkle on their own timing and drift slowly
+    // across, plus the occasional shooting star. Only runs at night.
+    const sky = document.querySelector(".night");
+    const sctx = sky.getContext("2d");
+    const HILL = [[0, 96], [8, 91.6], [16, 86.6], [24, 83.3], [28, 82.2], [36, 82],
+      [40, 82.9], [60, 80.5], [64, 79.6], [72, 81.6], [80, 82.9], [88, 87], [96, 91.3], [100, 92.4]];
+    let sw = 0;
+    let sh = 0;
+    let drift = 0;
+    let shooting = null;
+    let nextShooting = performance.now() + rand(3000, 8000);
+    let lastSky = performance.now();
+
+    const stars = Array.from({ length: 170 }, () => ({
+      x: Math.random(),
+      y: Math.random() ** 1.3 * 0.8,
+      r: rand(0.35, 1) ** 2 * 1.6 + 0.3,
+      base: rand(0.3, 1),
+      freq: rand(0.2, 1.4),
+      phase: rand(0, Math.PI * 2),
+      warm: Math.random() < 0.15,
+    }));
+
+    function hillAt(x) {
+      const p = x * 100;
+      for (let i = 1; i < HILL.length; i++) {
+        if (p <= HILL[i][0]) {
+          const [x0, y0] = HILL[i - 1];
+          const [x1, y1] = HILL[i];
+          return (y0 + ((p - x0) / (x1 - x0)) * (y1 - y0)) / 100;
+        }
+      }
+      return 0.92;
+    }
+
+    // Behind the Mac or below the hill line, stars are hidden.
+    function hidden(x, y) {
+      if (y > hillAt(x) - 0.015) return true;
+      return x > 0.405 && x < 0.595 && y > 0.445;
+    }
+
+    function resizeSky() {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      sw = sky.clientWidth;
+      sh = sky.clientHeight;
+      sky.width = sw * dpr;
+      sky.height = sh * dpr;
+      sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function drawSky(now) {
+      const dt = Math.min((now - lastSky) / 1000, 0.1);
+      lastSky = now;
+
+      if (document.body.dataset.time !== "night") {
+        requestAnimationFrame(drawSky);
+        return;
+      }
+
+      sctx.clearRect(0, 0, sw, sh);
+      const scale = sw / 1600;
+      if (!reduceMotion) drift = (drift + dt * 0.0025) % 1;
+      const t = now / 1000;
+
+      for (const s of stars) {
+        const x = (s.x + drift) % 1;
+        const y = s.y + Math.sin((x - 0.5) * 1.2) * 0.02;
+        if (hidden(x, y)) continue;
+        const tw = reduceMotion ? 1 : 0.55 + 0.45 * Math.sin(t * s.freq * Math.PI * 2 + s.phase);
+        sctx.globalAlpha = s.base * tw;
+        sctx.fillStyle = s.warm ? "#ffe9c8" : "#eef3ff";
+        sctx.beginPath();
+        sctx.arc(x * sw, y * sh, s.r * scale, 0, Math.PI * 2);
+        sctx.fill();
+        if (s.r > 1.3) {
+          sctx.globalAlpha *= 0.25;
+          sctx.beginPath();
+          sctx.arc(x * sw, y * sh, s.r * 2.6 * scale, 0, Math.PI * 2);
+          sctx.fill();
+        }
+      }
+
+      if (!reduceMotion && !shooting && now > nextShooting) {
+        const angle = rand(0.3, 0.55);
+        shooting = { x: rand(0.1, 0.75) * sw, y: rand(0.04, 0.3) * sh, angle, start: now, life: rand(600, 900) };
+      }
+
+      if (shooting) {
+        const p = (now - shooting.start) / shooting.life;
+        if (p >= 1) {
+          shooting = null;
+          nextShooting = now + rand(6000, 16000);
+        } else {
+          const dist = p * 520 * scale;
+          const len = 140 * scale * Math.sin(p * Math.PI);
+          const hx = shooting.x + Math.cos(shooting.angle) * dist;
+          const hy = shooting.y + Math.sin(shooting.angle) * dist;
+          const tx = hx - Math.cos(shooting.angle) * len;
+          const ty = hy - Math.sin(shooting.angle) * len;
+          const grad = sctx.createLinearGradient(hx, hy, tx, ty);
+          grad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+          grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+          sctx.globalAlpha = Math.sin(p * Math.PI);
+          sctx.strokeStyle = grad;
+          sctx.lineWidth = 1.4 * scale;
+          sctx.lineCap = "round";
+          sctx.beginPath();
+          sctx.moveTo(hx, hy);
+          sctx.lineTo(tx, ty);
+          sctx.stroke();
+        }
+      }
+
+      sctx.globalAlpha = 1;
+      requestAnimationFrame(drawSky);
+    }
+
+    resizeSky();
+    new ResizeObserver(resizeSky).observe(sky);
+    requestAnimationFrame(drawSky);
   </script>
 </body>
 </html>
