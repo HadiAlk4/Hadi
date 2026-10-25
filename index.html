@@ -46,9 +46,8 @@
       object-fit: cover;
     }
 
-    .stage .sky-mask,
-    .stage .tint,
-    .stage .stars { z-index: 3; }
+    body:not(.ready),
+    body:not(.ready) * { transition: none !important; }
 
     /* Covers the original text in the video with matching sky. */
     .stage .sky-mask {
@@ -219,7 +218,6 @@
 <body>
   <div class="stage" aria-hidden="true">
     <video src="inspo.mp4" autoplay muted playsinline></video>
-    <video src="inspo.mp4" muted playsinline preload="auto"></video>
     <div class="sky-mask"></div>
     <div class="tint"></div>
     <div class="stars"></div>
@@ -281,44 +279,25 @@
     update();
     setInterval(update, 60 * 1000);
 
+    // Only fade between scenes when the hour changes, not on first load.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.body.classList.add("ready");
+    }));
+
     // The video powers the screen on, then drifts to dusk and switches off.
-    // Play the power-on once, then loop only the steady lit stretch,
-    // crossfading between two copies so the jump back isn't visible.
-    const LOOP_START = 0.7;
-    const LOOP_END = 2.7;
-    const FADE = 0.6;
+    // Play the power-on once and hold on the lit screen.
+    const HOLD_AT = 2.0;
+    const video = document.querySelector(".stage video");
 
-    let [front, back] = document.querySelectorAll(".stage video");
-    let fading = false;
-    front.style.zIndex = 1;
-    back.style.opacity = 0;
-    // Seek ahead of time so the incoming copy never shows a stale frame.
-    back.addEventListener("loadedmetadata", () => { back.currentTime = LOOP_START; }, { once: true });
-
-    function crossfade() {
-      fading = true;
-      back.play();
-      back.style.zIndex = 2;
-      back.style.transition = `opacity ${FADE}s linear`;
-      back.style.opacity = 1;
-
-      setTimeout(() => {
-        front.pause();
-        front.style.transition = "none";
-        front.style.opacity = 0;
-        front.style.zIndex = 1;
-        front.currentTime = LOOP_START;
-        [front, back] = [back, front];
-        fading = false;
-      }, FADE * 1000);
+    function hold() {
+      if (video.currentTime >= HOLD_AT) {
+        video.pause();
+        return;
+      }
+      requestAnimationFrame(hold);
     }
 
-    function tick() {
-      if (!fading && front.currentTime >= LOOP_END - FADE) crossfade();
-      requestAnimationFrame(tick);
-    }
-
-    requestAnimationFrame(tick);
+    requestAnimationFrame(hold);
   </script>
 </body>
 </html>
