@@ -273,13 +273,28 @@
     .projects .close:hover,
     .projects .close:focus-visible { color: var(--text); }
 
+    .projects .groups {
+      overflow-y: auto;
+      padding: 8px 16px 20px;
+    }
+
+    .projects section + section {
+      margin-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .projects h3 {
+      font-family: "Instrument Serif", serif;
+      font-weight: 400;
+      font-size: 26px;
+      padding: 20px 16px 4px;
+    }
+
     .projects ul {
       list-style: none;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
       gap: 4px;
-      padding: 16px;
-      overflow-y: auto;
     }
 
     .project {
@@ -361,7 +376,8 @@
       .col a { font-size: 14px; }
       .col li + li { margin-top: 10px; }
       .projects header { padding: 22px 20px 16px; }
-      .projects ul { padding: 8px; grid-template-columns: 1fr; }
+      .projects .groups { padding: 0 8px 12px; }
+      .projects ul { grid-template-columns: 1fr; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -427,28 +443,26 @@
       <h2 id="projects-title">Projects</h2>
       <button class="close" type="button">Close</button>
     </header>
-    <ul></ul>
+    <div class="groups"></div>
   </dialog>
 
   <script>
     // Public projects from github.com/HadiAlk4 (forks and private repos left out).
     const PROJECTS = [
-      { name: "Ruminations", desc: "Personal website and blog built on Astro.", lang: "Astro", live: "https://hadialk4.github.io/Ruminations/" },
-      { name: "Preemptive-RTOS", desc: "A small real-time operating system for the Raspberry Pi Pico.", lang: "C" },
-      { name: "Hadi-Git", desc: "Personal project of trying to recreate Git in Rust.", lang: "Rust" },
-      { name: "Chat-App-System", desc: "Chat app system with smthn ig.", lang: "TypeScript" },
-      { name: "A3", desc: "A3 assignment for project management.", lang: "Python" },
-      { name: "DiamondGrid-Cryptography-System", desc: "A C++ command-line application that implements a unique encryption and decryption algorithm using multi-round grid-based transpositions and diamond patterns.", lang: "C++" },
-      { name: "GU-KeepEM", desc: "A multiplayer Poker game implemented in C with an interactive graphical user interface using OpenGL and GLUT.", lang: "C" },
-      { name: "Algothon-2026-Band-of-the-Hawk", desc: "Submission for Band of the Hawk Group for Algothon 2026. This code got 220/250, so you probably shouldn't trust it for any financial trades.", lang: "Python" },
-      { name: "The-3-Chess-Engines", desc: "Chess engine with a special quirk (WiP and no quirk till now).", lang: "C++" },
-      { name: "VGA-Pong-Game-Using-The-Tiva-129", desc: "A simple Pong game on the Tiva TM4C129 microcontroller using low-level C programming.", lang: "C" },
-      { name: "MAX7219-Device-Driver-Digital-Clock", desc: "A device driver (kernel module) to drive an 8-digit seven-segment display and have it display a clock.", lang: "TeX" },
-      { name: "Khawarizmia-Visualizer", desc: "Algorithm (Khawarizmia) visualizer (tried 🤥) using an old Arabian inspired design (nothing besides the name).", lang: "TypeScript", live: "https://khawarizmia-visualizer.vercel.app" },
-      { name: "Assembly-Command-Line-Calculator", desc: "A non-scientific command-line calculator made in Assembly.", lang: "Assembly" },
-      { name: "Ugly-FakeStore-Application", desc: "Ugly fake mobile e-commerce application built on React Native.", lang: "JavaScript" },
-      { name: "MinecraftToDoApp", desc: "ToDo Minecraft inspired mobile application built on React Native.", lang: "JavaScript" },
-      { name: "Learning-Bites", desc: "Personal learning bites from an array of different topics.", lang: "C#" },
+      { group: "web", name: "Ruminations", desc: "Personal website and blog built on Astro.", lang: "Astro", live: "https://hadialk4.github.io/Ruminations/" },
+      { group: "embedded", name: "Preemptive-RTOS", desc: "A small real-time operating system for the Raspberry Pi Pico.", lang: "C" },
+      { group: "systems", name: "Hadi-Git", desc: "Personal project of trying to recreate Git in Rust.", lang: "Rust" },
+      { group: "web", name: "Chat-App-System", desc: "Chat app system with smthn ig.", lang: "TypeScript" },
+      { group: "systems", name: "DiamondGrid-Cryptography-System", desc: "A C++ command-line application that implements a unique encryption and decryption algorithm using multi-round grid-based transpositions and diamond patterns.", lang: "C++" },
+      { group: "games", name: "GU-KeepEM", desc: "A multiplayer Poker game implemented in C with an interactive graphical user interface using OpenGL and GLUT.", lang: "C" },
+      { group: "systems", name: "Algothon-2026-Band-of-the-Hawk", desc: "Submission for Band of the Hawk Group for Algothon 2026. This code got 220/250, so you probably shouldn't trust it for any financial trades.", lang: "Python" },
+      { group: "games", name: "The-3-Chess-Engines", desc: "Chess engine with a special quirk (WiP and no quirk till now).", lang: "C++" },
+      { group: "embedded", name: "VGA-Pong-Game-Using-The-Tiva-129", desc: "A simple Pong game on the Tiva TM4C129 microcontroller using low-level C programming.", lang: "C" },
+      { group: "embedded", name: "MAX7219-Device-Driver-Digital-Clock", desc: "A device driver (kernel module) to drive an 8-digit seven-segment display and have it display a clock.", lang: "TeX" },
+      { group: "web", name: "Khawarizmia-Visualizer", desc: "Algorithm (Khawarizmia) visualizer (tried 🤥) using an old Arabian inspired design (nothing besides the name).", lang: "TypeScript", live: "https://khawarizmia-visualizer.vercel.app" },
+      { group: "embedded", name: "Assembly-Command-Line-Calculator", desc: "A non-scientific command-line calculator made in Assembly.", lang: "Assembly" },
+      { group: "web", name: "Ugly-FakeStore-Application", desc: "Ugly fake mobile e-commerce application built on React Native.", lang: "JavaScript" },
+      { group: "web", name: "MinecraftToDoApp", desc: "ToDo Minecraft inspired mobile application built on React Native.", lang: "JavaScript" },
     ];
 
     // GitHub's language colours.
@@ -457,8 +471,24 @@
       Python: "#3572a5", TypeScript: "#3178c6", JavaScript: "#f1e05a", Assembly: "#6e4c13", TeX: "#3d6117",
     };
 
+    const GROUPS = [
+      ["embedded", "Embedded & Low-Level"],
+      ["systems", "Systems & Algorithms"],
+      ["games", "Games"],
+      ["web", "Web & Mobile"],
+    ];
+
     const dialog = document.querySelector(".projects");
-    const list = dialog.querySelector("ul");
+    const groupsEl = dialog.querySelector(".groups");
+    const lists = {};
+
+    for (const [id, title] of GROUPS) {
+      const section = document.createElement("section");
+      section.innerHTML = `<h3></h3><ul></ul>`;
+      section.querySelector("h3").textContent = title;
+      lists[id] = section.querySelector("ul");
+      groupsEl.append(section);
+    }
 
     for (const p of PROJECTS) {
       const li = document.createElement("li");
@@ -473,7 +503,7 @@
       li.querySelector(".name").textContent = p.name.replaceAll("-", " ");
       li.querySelector("p").textContent = p.desc;
       li.querySelector(".lang").textContent = p.lang;
-      list.append(li);
+      lists[p.group].append(li);
     }
 
     // Open with the Projects link or a #projects URL; close with the button,
