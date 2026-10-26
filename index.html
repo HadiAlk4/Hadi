@@ -231,8 +231,8 @@
       outline: none;
     }
 
-    /* Projects panel: frosted glass over the scene. */
-    .projects {
+    /* Panels (Projects, Contact): frosted glass inside the zoomed screen. */
+    .panel {
       margin: auto;
       width: min(1100px, calc(100% - 32px));
       max-height: min(80vh, 820px);
@@ -247,14 +247,14 @@
       overflow: hidden;
     }
 
-    .projects[open] { display: flex; flex-direction: column; }
+    .panel[open] { display: flex; flex-direction: column; }
 
-    .projects::backdrop {
+    .panel::backdrop {
       background: rgba(5, 10, 30, 0.15);
     }
 
     /* Faint scanlines, since the panel lives "inside" the screen. */
-    .projects::before {
+    .panel::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -264,7 +264,7 @@
     }
 
     /* White phosphor flash for the switch-on and switch-off. */
-    .projects::after {
+    .panel::after {
       content: "";
       position: absolute;
       inset: 0;
@@ -274,10 +274,10 @@
       opacity: 0;
     }
 
-    .projects.opening { animation: crt-open 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-    .projects.opening::after { animation: crt-flash-in 0.65s ease-out both; }
-    .projects.closing { animation: crt-close 0.45s ease-in both; }
-    .projects.closing::after { animation: crt-flash-out 0.45s ease-in both; }
+    .panel.opening { animation: crt-open 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+    .panel.opening::after { animation: crt-flash-in 0.65s ease-out both; }
+    .panel.closing { animation: crt-close 0.45s ease-in both; }
+    .panel.closing::after { animation: crt-flash-out 0.45s ease-in both; }
 
     @keyframes crt-open {
       0% { transform: scale(0.03, 0.004); }
@@ -301,7 +301,7 @@
       45%, 100% { opacity: 1; }
     }
 
-    .projects header {
+    .panel header {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
@@ -309,14 +309,14 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    .projects h2 {
+    .panel h2 {
       font-family: "Instrument Serif", serif;
       font-weight: 400;
       font-size: clamp(34px, 3vw, 48px);
       line-height: 1;
     }
 
-    .projects .close {
+    .panel .close {
       font: inherit;
       font-size: 15px;
       color: var(--muted);
@@ -328,10 +328,43 @@
       outline: none;
     }
 
-    .projects .close:focus-visible { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.55); }
+    .panel .close:focus-visible { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.55); }
 
-    .projects .close:hover,
-    .projects .close:focus-visible { color: var(--text); }
+    .panel .close:hover,
+    .panel .close:focus-visible { color: var(--text); }
+
+    .panel.contact { width: min(560px, calc(100% - 32px)); }
+
+    .contact-list {
+      display: grid;
+      gap: 4px;
+      padding: 16px;
+    }
+
+    .contact-list a {
+      display: grid;
+      gap: 4px;
+      padding: 16px;
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+
+    .contact-list a:hover,
+    .contact-list a:focus-visible {
+      background: rgba(255, 255, 255, 0.08);
+      outline: none;
+    }
+
+    .contact-list .label {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .contact-list .value {
+      font-size: clamp(18px, 1.5vw, 22px);
+    }
 
     .projects .groups {
       overflow-y: auto;
@@ -450,7 +483,7 @@
       .col h2 { font-size: 22px; margin-bottom: 14px; }
       .col a { font-size: 14px; }
       .col li + li { margin-top: 10px; }
-      .projects header { padding: 22px 20px 16px; }
+      .panel header { padding: 22px 20px 16px; }
       .projects .groups { padding: 0 8px 12px; }
       .projects ul { grid-template-columns: 1fr; }
     }
@@ -499,7 +532,7 @@
       <ul>
         <li><a href="#">About me</a></li>
         <li><a href="#">Now</a></li>
-        <li><a href="#">Contact</a></li>
+        <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
 
@@ -513,12 +546,29 @@
     </nav>
   </footer>
 
-  <dialog class="projects" aria-labelledby="projects-title">
+  <dialog class="panel projects" id="projects" aria-labelledby="projects-title">
     <header>
       <h2 id="projects-title">Projects</h2>
       <button class="close" type="button">Close</button>
     </header>
     <div class="groups"></div>
+  </dialog>
+
+  <dialog class="panel contact" id="contact" aria-labelledby="contact-title">
+    <header>
+      <h2 id="contact-title">Contact</h2>
+      <button class="close" type="button">Close</button>
+    </header>
+    <div class="contact-list">
+      <a href="mailto:hadiaalkhub@gmail.com">
+        <span class="label">Email</span>
+        <span class="value">hadiaalkhub@gmail.com</span>
+      </a>
+      <a href="tel:+61451210261">
+        <span class="label">Phone</span>
+        <span class="value">0451 210 261</span>
+      </a>
+    </div>
   </dialog>
 
   <script>
@@ -553,8 +603,7 @@
       ["web", "Web & Mobile"],
     ];
 
-    const dialog = document.querySelector(".projects");
-    const groupsEl = dialog.querySelector(".groups");
+    const groupsEl = document.querySelector(".projects .groups");
     const lists = {};
 
     for (const [id, title] of GROUPS) {
@@ -604,35 +653,43 @@
       return `translateX(-50%) translate(${innerWidth / 2 - cx}px, ${innerHeight / 2 - cy}px) scale(${scale})`;
     }
 
-    async function openProjects() {
-      if (dialog.open || busy) return;
+    // Each panel opens from its own #hash (#projects, #contact).
+    const panels = [...document.querySelectorAll("dialog.panel")];
+    let current = null;
+
+    async function openPanel(panel) {
+      if (busy || current === panel) return;
+      if (current) await closePanel();
       busy = true;
+      current = panel;
       if (motionOK) {
         document.body.classList.add("zoomed");
         screenEl.classList.add("tuning");
         stage.style.transform = zoomTransform();
         await wait(750);
       }
-      dialog.showModal();
+      panel.showModal();
       if (motionOK) {
-        dialog.classList.add("opening");
+        panel.classList.add("opening");
         await wait(300);
         screenEl.classList.remove("tuning");
         await wait(350);
-        dialog.classList.remove("opening");
+        panel.classList.remove("opening");
       }
       busy = false;
     }
 
-    async function closeProjects() {
-      if (!dialog.open || busy) return;
+    async function closePanel() {
+      if (busy || !current) return;
       busy = true;
+      const panel = current;
       if (motionOK) {
-        dialog.classList.add("closing");
+        panel.classList.add("closing");
         await wait(450);
-        dialog.classList.remove("closing");
+        panel.classList.remove("closing");
       }
-      dialog.close();
+      panel.close();
+      current = null;
       if (motionOK) {
         screenEl.classList.add("tuning");
         stage.style.transform = "";
@@ -644,29 +701,33 @@
       busy = false;
     }
 
-    // Open with the Projects link or a #projects URL; close with the button,
-    // Escape or a click outside the panel.
-    function syncProjects() {
-      if (location.hash === "#projects") openProjects();
-      else closeProjects();
+    // Open from a link or a URL hash; close with the button, Escape or a
+    // click outside the panel.
+    function syncPanels() {
+      const target = panels.find((panel) => location.hash === `#${panel.id}`);
+      if (target) openPanel(target);
+      else closePanel();
     }
 
-    dialog.addEventListener("close", () => {
-      if (location.hash === "#projects") history.replaceState(null, "", location.pathname + location.search);
-    });
-    dialog.addEventListener("cancel", (e) => {
-      e.preventDefault();
-      closeProjects();
-    });
-    dialog.querySelector(".close").addEventListener("click", closeProjects);
-    dialog.addEventListener("click", (e) => {
-      if (e.target === dialog) closeProjects();
-    });
+    for (const panel of panels) {
+      panel.addEventListener("close", () => {
+        if (location.hash === `#${panel.id}`) history.replaceState(null, "", location.pathname + location.search);
+      });
+      panel.addEventListener("cancel", (e) => {
+        e.preventDefault();
+        closePanel();
+      });
+      panel.querySelector(".close").addEventListener("click", closePanel);
+      panel.addEventListener("click", (e) => {
+        if (e.target === panel) closePanel();
+      });
+    }
+
     addEventListener("resize", () => {
-      if (dialog.open && motionOK) stage.style.transform = zoomTransform();
+      if (current && motionOK) stage.style.transform = zoomTransform();
     });
-    addEventListener("hashchange", syncProjects);
-    syncProjects();
+    addEventListener("hashchange", syncPanels);
+    syncPanels();
 
     // Picks the scene from the visitor's local clock. Add ?time=night (or
     // dawn / day / sunset) to the URL to preview a scene.
