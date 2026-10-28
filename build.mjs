@@ -73,7 +73,7 @@ ${GENERATED}
   <link rel="stylesheet" href="../post.css">
 </head>
 <body>
-  <div class="inside-screen" aria-hidden="true"><img src="../../scene.jpg" alt=""></div>
+  <div class="scene" aria-hidden="true"><img src="../../scene.jpg" alt=""></div>
 
   <main class="post">
     <a class="back" href="../../index.html#writing">← Writing</a>

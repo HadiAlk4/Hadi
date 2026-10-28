@@ -334,7 +334,64 @@
     .panel .close:focus-visible { color: var(--text); }
 
     .panel.contact { width: min(560px, calc(100% - 32px)); }
-    .panel.writing { width: min(760px, calc(100% - 32px)); }
+    /* Writing: a sheet of paper fed out of the floppy slot, instead of the
+       zoom into the screen. */
+    .feed {
+      /* Just under the slot opening, traced from the plate. */
+      left: 49.84%;
+      top: 77.3%;
+      width: 4.84%;
+      height: 4.6%;
+      right: auto;
+      bottom: auto;
+      overflow: hidden;
+      visibility: hidden;
+    }
+
+    .feed.on { visibility: visible; }
+
+    .feed .sheet {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, #b9b2a3, #f1ece1 30%, #f5f1e8);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+      transform: translateY(-100%);
+    }
+
+    body.paper footer { opacity: 0; pointer-events: none; }
+
+    .panel.writing {
+      --ink: #1d1c1a;
+      width: min(760px, calc(100% - 32px));
+      border: 0;
+      border-radius: 3px;
+      color: var(--ink);
+      /* Paper with a faint fibre texture and the crease from being folded. */
+      background:
+        linear-gradient(to bottom, transparent calc(50% - 1px), rgba(0, 0, 0, 0.05) 50%, rgba(255, 255, 255, 0.5) calc(50% + 1px), transparent calc(50% + 2px)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0 0.3 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+        #f5f1e8;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 30px 70px rgba(5, 10, 30, 0.4);
+    }
+
+    .panel.writing::before,
+    .panel.writing::after { display: none; }
+
+    .panel.writing::backdrop { background: rgba(5, 10, 30, 0.3); }
+
+    body[data-time="night"] .panel.writing { filter: brightness(0.85); }
+
+    .panel.writing header { border-bottom-color: rgba(0, 0, 0, 0.1); }
+    .panel.writing .close { color: #6b665c; }
+    .panel.writing .close:hover,
+    .panel.writing .close:focus-visible { color: var(--ink); }
+    .panel.writing .close:focus-visible { box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.4); }
+
+    /* Content stays hidden while the sheet is in flight. */
+    .panel.writing > * { transition: opacity 0.35s ease; }
+    .panel.writing.blank > * { opacity: 0; transition: none; }
 
     .posts {
       list-style: none;
@@ -346,15 +403,15 @@
       display: grid;
       gap: 6px;
       padding: 18px 16px;
-      border-radius: 12px;
-      color: var(--text);
+      border-radius: 10px;
+      color: var(--ink);
       text-decoration: none;
       transition: background-color 0.2s ease;
     }
 
     .posts a:hover,
     .posts a:focus-visible {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(60, 45, 20, 0.06);
       outline: none;
     }
 
@@ -366,18 +423,23 @@
 
     .posts .meta {
       font-size: 13px;
-      color: rgba(255, 255, 255, 0.6);
+      color: #7a7466;
     }
 
     .posts .summary {
       font-size: 15px;
       line-height: 1.5;
-      color: rgba(255, 255, 255, 0.75);
+      color: #45413a;
     }
+
+    .posts .meta,
+    .posts .summary { transition: opacity 0.4s ease; }
+    .posts.typing .meta,
+    .posts.typing .summary { opacity: 0; }
 
     .posts .empty {
       padding: 18px 16px;
-      color: rgba(255, 255, 255, 0.65);
+      color: #7a7466;
     }
 
     .contact-list {
@@ -549,6 +611,7 @@
       <div class="crt-off"></div>
       <div class="crt-line"></div>
     </div>
+    <div class="feed"><div class="sheet"></div></div>
     <canvas class="seeds"></canvas>
     <div class="tint"></div>
     <canvas class="night"></canvas>
@@ -599,7 +662,7 @@
     <div class="groups"></div>
   </dialog>
 
-  <dialog class="panel writing" id="writing" aria-labelledby="writing-title">
+  <dialog class="panel writing" id="writing" data-anim="paper" aria-labelledby="writing-title">
     <header>
       <h2 id="writing-title">Writing</h2>
       <button class="close" type="button">Close</button>
@@ -751,9 +814,17 @@
       if (!link || !motionOK || e.metaKey || e.ctrlKey || e.shiftKey) return;
       e.preventDefault();
       busy = true;
-      current.classList.add("closing");
-      await wait(450);
+      await play(current, [
+        { transform: "none", opacity: 1 },
+        { transform: "translateY(40px) rotate(-1deg)", opacity: 0 },
+      ], { duration: 320, easing: "ease-in" });
       location.href = link.href;
+    });
+
+    // Coming back from a post via the back button can restore the page
+    // mid-exit, so start fresh.
+    addEventListener("pageshow", (e) => {
+      if (e.persisted) location.reload();
     });
 
     // Each panel opens from its own #hash (#projects, #writing, #contact).
@@ -765,6 +836,30 @@
       if (current) await closePanel();
       busy = true;
       current = panel;
+      if (panel.dataset.anim === "paper") await openPaper(panel);
+      else await openScreen(panel);
+      busy = false;
+    }
+
+    async function closePanel() {
+      if (busy || !current) return;
+      busy = true;
+      const panel = current;
+      if (panel.dataset.anim === "paper") await closePaper(panel);
+      else await closeScreen(panel);
+      current = null;
+      busy = false;
+    }
+
+    // Plays a Web Animation and keeps its end state as inline style.
+    async function play(el, frames, options) {
+      const anim = el.animate(frames, { ...options, fill: "forwards" });
+      await anim.finished;
+      anim.commitStyles();
+      anim.cancel();
+    }
+
+    async function openScreen(panel) {
       if (motionOK) {
         document.body.classList.add("zoomed");
         screenEl.classList.add("tuning");
@@ -779,20 +874,15 @@
         await wait(350);
         panel.classList.remove("opening");
       }
-      busy = false;
     }
 
-    async function closePanel() {
-      if (busy || !current) return;
-      busy = true;
-      const panel = current;
+    async function closeScreen(panel) {
       if (motionOK) {
         panel.classList.add("closing");
         await wait(450);
         panel.classList.remove("closing");
       }
       panel.close();
-      current = null;
       if (motionOK) {
         screenEl.classList.add("tuning");
         stage.style.transform = "";
@@ -801,7 +891,92 @@
         await wait(300);
       }
       document.body.classList.remove("zoomed");
-      busy = false;
+    }
+
+    // Writing: a sheet feeds out of the floppy slot, lifts toward the camera
+    // and opens out into the panel, then the post titles type themselves in.
+    const feed = document.querySelector(".feed");
+    const sheet = feed.querySelector(".sheet");
+
+    // Transform that shrinks the panel onto the sheet poking out of the slot.
+    function onSheet(panel) {
+      const from = sheet.getBoundingClientRect();
+      const to = panel.getBoundingClientRect();
+      const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+      const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+      return { dx, dy, sx: from.width / to.width, sy: from.height / to.height };
+    }
+
+    // Types runs in the background; a newer run (or closing) stops older ones.
+    let typingRun = 0;
+
+    async function typeTitles(panel) {
+      const run = ++typingRun;
+      const list = panel.querySelector(".posts");
+      const titles = [...list.querySelectorAll(".title")];
+      list.classList.add("typing");
+      for (const t of titles) {
+        t.dataset.full ??= t.textContent;
+        t.textContent = "";
+      }
+      await Promise.all(titles.map(async (t, i) => {
+        await wait(i * 120);
+        for (const ch of t.dataset.full) {
+          if (run !== typingRun) return;
+          t.textContent += ch;
+          await wait(32);
+        }
+      }));
+      if (run === typingRun) list.classList.remove("typing");
+    }
+
+    async function openPaper(panel) {
+      document.body.classList.add("paper");
+      if (!motionOK) return panel.showModal();
+
+      feed.classList.add("on");
+      await play(sheet, [{ transform: "translateY(-100%)" }, { transform: "translateY(0)" }],
+        { duration: 700, easing: "cubic-bezier(0.3, 0.6, 0.3, 1)" });
+
+      panel.classList.add("blank");
+      panel.showModal();
+      const { dx, dy, sx, sy } = onSheet(panel);
+      feed.classList.remove("on");
+      const mid = (a) => a + (1 - a) * 0.55;
+      await play(panel, [
+        { transform: `perspective(1400px) translate(${dx}px, ${dy}px) scale(${sx}, ${sy}) rotateX(0deg)` },
+        { transform: `perspective(1400px) translate(${dx * 0.4}px, ${dy * 0.4 - 30}px) scale(${mid(sx)}, ${mid(sy) * 0.6}) rotateX(35deg)`, offset: 0.5 },
+        { transform: "perspective(1400px) translate(0px, 0px) scale(1, 1) rotateX(0deg)" },
+      ], { duration: 950, easing: "cubic-bezier(0.25, 0.7, 0.25, 1)" });
+      panel.style.transform = "";
+
+      panel.classList.remove("blank");
+      typeTitles(panel);
+    }
+
+    async function closePaper(panel) {
+      typingRun++;
+      for (const t of panel.querySelectorAll(".title[data-full]")) t.textContent = t.dataset.full;
+      panel.querySelector(".posts").classList.remove("typing");
+      if (motionOK) {
+        panel.classList.add("blank");
+        const { dx, dy, sx, sy } = onSheet(panel);
+        await play(panel, [
+          { transform: "perspective(1400px) translate(0px, 0px) scale(1, 1) rotateX(0deg)" },
+          { transform: `perspective(1400px) translate(${dx}px, ${dy}px) scale(${sx}, ${sy}) rotateX(0deg)` },
+        ], { duration: 650, easing: "cubic-bezier(0.5, 0, 0.3, 1)" });
+        feed.classList.add("on");
+      }
+      panel.close();
+      panel.style.transform = "";
+      panel.style.opacity = "";
+      panel.classList.remove("blank");
+      if (motionOK) {
+        await play(sheet, [{ transform: "translateY(0)" }, { transform: "translateY(-100%)" }],
+          { duration: 550, easing: "cubic-bezier(0.5, 0, 0.7, 0.4)" });
+        feed.classList.remove("on");
+      }
+      document.body.classList.remove("paper");
     }
 
     // Open from a link or a URL hash; close with the button, Escape or a
@@ -827,7 +1002,7 @@
     }
 
     addEventListener("resize", () => {
-      if (current && motionOK) stage.style.transform = zoomTransform();
+      if (current && current.dataset.anim !== "paper" && motionOK) stage.style.transform = zoomTransform();
     });
     addEventListener("hashchange", syncPanels);
     syncPanels();
