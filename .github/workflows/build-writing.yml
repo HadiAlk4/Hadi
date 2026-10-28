@@ -8,6 +8,10 @@ on:
     branches: [main]
     paths:
       - "writing/**.md"
+      - "writing/post.css"
+      - "writing/post.js"
+      - "time.js"
+      - "typewriter.js"
       - "build.mjs"
   workflow_dispatch:
 
