@@ -40,6 +40,55 @@ body {
   background: rgba(5, 10, 30, 0.3);
 }
 
+/* Time of day, matching the home page (body[data-time] is set by time.js). */
+.scene .tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+body[data-time="dawn"] { background-color: #5a6ab0; }
+body[data-time="dawn"] .scene img { filter: blur(10px) brightness(1.02) saturate(1.15); }
+body[data-time="dawn"] .scene .tint {
+  opacity: 0.5;
+  mix-blend-mode: color;
+  background: linear-gradient(to bottom, #5a6ab0 0%, #b89ad0 25%, #f4b2c0 45%, #ffd0a8 60%, transparent 78%);
+}
+
+body[data-time="sunset"] { background-color: #2e2a6a; }
+body[data-time="sunset"] .scene img { filter: blur(10px) saturate(1.43) brightness(0.92); }
+body[data-time="sunset"] .scene .tint {
+  opacity: 0.65;
+  mix-blend-mode: color;
+  background: linear-gradient(to bottom, #2e2a6a 0%, #7a3e94 22%, #e0607a 40%, #ff8a48 55%, #ffb060 66%, transparent 80%);
+}
+
+body[data-time="night"] { background-color: #070d22; }
+body[data-time="night"] .scene img { filter: blur(10px) brightness(0.62) saturate(0.88) hue-rotate(8deg); }
+body[data-time="night"] .scene .tint {
+  opacity: 1;
+  mix-blend-mode: multiply;
+  background: linear-gradient(to bottom, #1a2350 0%, #2a3a7a 60%, #3a4a80 100%);
+}
+body[data-time="night"] .post { filter: brightness(0.85); }
+
+/* Typewriter (typewriter.js). */
+.tw-rest { visibility: hidden; }
+
+.tw-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-right: -2px;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
 .post {
   position: relative;
   width: min(720px, calc(100% - 32px));

@@ -426,16 +426,25 @@
       color: #7a7466;
     }
 
-    .posts .summary {
-      font-size: 15px;
-      line-height: 1.5;
-      color: #45413a;
+    .posts .meta { transition: opacity 0.4s ease; }
+    .posts.typing .meta { opacity: 0; }
+
+    /* Typewriter (typewriter.js). */
+    .tw-rest { visibility: hidden; }
+
+    .tw-caret {
+      display: inline-block;
+      width: 2px;
+      height: 0.9em;
+      margin-right: -2px;
+      vertical-align: -0.08em;
+      background: currentColor;
+      animation: blink 1s steps(1) infinite;
     }
 
-    .posts .meta,
-    .posts .summary { transition: opacity 0.4s ease; }
-    .posts.typing .meta,
-    .posts.typing .summary { opacity: 0; }
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
 
     .posts .empty {
       padding: 18px 16px;
@@ -687,6 +696,8 @@
     </div>
   </dialog>
 
+  <script src="time.js"></script>
+  <script src="typewriter.js"></script>
   <script>
     // Public projects from github.com/HadiAlk4 (forks and private repos left out).
     const PROJECTS = [
@@ -778,7 +789,6 @@
         "title": "growth",
         "date": "8 July 2026",
         "iso": "2026-07-08",
-        "summary": "To fully develop you must go too far, be careful of pursuits that are not reversible.",
         "minutes": 1
       },
       {
@@ -786,7 +796,6 @@
         "title": "choices",
         "date": "6 July 2026",
         "iso": "2026-07-06",
-        "summary": "Practice is the fountainhead of excellence, excellence is not a single and solitary action. It is the outcome of making many small moves and choices.",
         "minutes": 1
       }
     ];
@@ -799,11 +808,9 @@
         <a href="writing/${post.slug}/index.html">
           <span class="title"></span>
           <span class="meta"></span>
-          <span class="summary"></span>
         </a>`;
       li.querySelector(".title").textContent = post.title;
       li.querySelector(".meta").textContent = `${post.date} · ${post.minutes} min read`;
-      li.querySelector(".summary").textContent = post.summary;
       postsEl.append(li);
     }
     if (!POSTS.length) postsEl.innerHTML = `<li class="empty">Nothing here yet.</li>`;
@@ -907,27 +914,24 @@
       return { dx, dy, sx: from.width / to.width, sy: from.height / to.height };
     }
 
-    // Types runs in the background; a newer run (or closing) stops older ones.
-    let typingRun = 0;
+    // Titles type themselves onto the paper; the date fades in after.
+    let titleTyping = [];
 
-    async function typeTitles(panel) {
-      const run = ++typingRun;
+    function typeTitles(panel) {
+      stopTitles();
       const list = panel.querySelector(".posts");
-      const titles = [...list.querySelectorAll(".title")];
       list.classList.add("typing");
-      for (const t of titles) {
+      titleTyping = [...list.querySelectorAll(".title")].map((t, i) => {
         t.dataset.full ??= t.textContent;
-        t.textContent = "";
-      }
-      await Promise.all(titles.map(async (t, i) => {
-        await wait(i * 120);
-        for (const ch of t.dataset.full) {
-          if (run !== typingRun) return;
-          t.textContent += ch;
-          await wait(32);
-        }
-      }));
-      if (run === typingRun) list.classList.remove("typing");
+        t.textContent = t.dataset.full;
+        return typewriter(t, { speed: 85, delay: i * 300 });
+      });
+      Promise.all(titleTyping.map((t) => t.done)).then(() => list.classList.remove("typing"));
+    }
+
+    function stopTitles() {
+      for (const t of titleTyping) t.finish();
+      titleTyping = [];
     }
 
     async function openPaper(panel) {
@@ -955,9 +959,7 @@
     }
 
     async function closePaper(panel) {
-      typingRun++;
-      for (const t of panel.querySelectorAll(".title[data-full]")) t.textContent = t.dataset.full;
-      panel.querySelector(".posts").classList.remove("typing");
+      stopTitles();
       if (motionOK) {
         panel.classList.add("blank");
         const { dx, dy, sx, sy } = onSheet(panel);
@@ -1006,24 +1008,6 @@
     });
     addEventListener("hashchange", syncPanels);
     syncPanels();
-
-    // Picks the scene from the visitor's local clock. Add ?time=night (or
-    // dawn / day / sunset) to the URL to preview a scene.
-    const override = new URLSearchParams(location.search).get("time");
-
-    function timeOfDay(hour) {
-      if (hour >= 5 && hour < 8) return "dawn";
-      if (hour >= 8 && hour < 17) return "day";
-      if (hour >= 17 && hour < 20) return "sunset";
-      return "night";
-    }
-
-    function update() {
-      document.body.dataset.time = override || timeOfDay(new Date().getHours());
-    }
-
-    update();
-    setInterval(update, 60 * 1000);
 
     // Only fade between scenes when the hour changes, not on first load.
     requestAnimationFrame(() => requestAnimationFrame(() => {

@@ -73,7 +73,7 @@ ${GENERATED}
   <link rel="stylesheet" href="../post.css">
 </head>
 <body>
-  <div class="scene" aria-hidden="true"><img src="../../scene.jpg" alt=""></div>
+  <div class="scene" aria-hidden="true"><img src="../../scene.jpg" alt=""><div class="tint"></div></div>
 
   <main class="post">
     <a class="back" href="../../index.html#writing">← Writing</a>
@@ -85,6 +85,10 @@ ${GENERATED}
 ${post.html}
     </article>
   </main>
+
+  <script src="../../time.js"></script>
+  <script src="../../typewriter.js"></script>
+  <script src="../post.js"></script>
 </body>
 </html>
 `;
@@ -110,7 +114,7 @@ for (const entry of readdirSync(SRC, { withFileTypes: true })) {
   }
 }
 
-const list = posts.map(({ slug, title, date, summary, minutes }) => ({ slug, title, date: formatDate(date), iso: date, summary, minutes }));
+const list = posts.map(({ slug, title, date, minutes }) => ({ slug, title, date: formatDate(date), iso: date, minutes }));
 const indexPath = join(ROOT, "index.html");
 const indexHtml = readFileSync(indexPath, "utf8");
 const marker = /(\/\* posts:start \*\/)[\s\S]*?(\/\* posts:end \*\/)/;
