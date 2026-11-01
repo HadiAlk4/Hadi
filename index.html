@@ -333,7 +333,62 @@
     .panel .close:hover,
     .panel .close:focus-visible { color: var(--text); }
 
-    .panel.contact { width: min(560px, calc(100% - 32px)); }
+    /* Contact: the seeds spell a greeting in the sky and the details sit
+       beneath it, straight on the sky with no box. */
+    .panel.contact {
+      width: min(560px, calc(100% - 32px));
+      inset: var(--top, 0) 0 auto 0;
+      margin: 0 auto;
+      border: 0;
+      background: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none;
+      overflow: visible;
+      text-align: center;
+      text-shadow: 0 1px 14px rgba(5, 10, 40, 0.55);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .panel.contact:not(.seeded) { inset: 0; margin: auto; }
+    .panel.contact::before,
+    .panel.contact::after { display: none; }
+    .panel.contact::backdrop { background: rgba(5, 10, 30, 0.12); }
+    .panel.contact.blank { opacity: 0; transform: translateY(10px); }
+
+    .panel.contact header {
+      justify-content: center;
+      border: 0;
+      padding-bottom: 0;
+    }
+
+    /* The seeds are the heading; keep it for screen readers only. */
+    .panel.contact.seeded h2 {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    .panel.contact .contact-list {
+      grid-template-columns: 1fr 1fr;
+      padding: 0 16px;
+    }
+
+    .panel.contact .contact-list a {
+      justify-items: center;
+      padding: 10px 12px;
+    }
+
+    @media (max-width: 600px) {
+      .panel.contact .contact-list { grid-template-columns: 1fr; }
+    }
+    .panel.contact .contact-list .label { color: rgba(255, 255, 255, 0.75); }
+
+    .panel.contact header { padding-top: 4px; }
+
+    .panel.contact[open] { display: flex; flex-direction: column-reverse; }
     /* Writing: a sheet of paper fed out of the floppy slot, instead of the
        zoom into the screen. */
     .feed {
@@ -359,6 +414,18 @@
     }
 
     body.away footer { opacity: 0; pointer-events: none; }
+
+    .word-seeds {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Moonlit at night: a little dimmer and cooler, with a soft glow. */
+    body[data-time="night"] .word-seeds { filter: brightness(0.85) drop-shadow(0 0 3px rgba(180, 200, 255, 0.5)); }
 
     .panel.writing {
       --ink: #1d1c1a;
@@ -726,6 +793,8 @@
     <canvas class="night"></canvas>
   </div>
 
+  <canvas class="word-seeds" aria-hidden="true"></canvas>
+
   <footer>
     <div class="brand">
       <div class="logo">hadi</div>
@@ -796,7 +865,7 @@
     </div>
   </dialog>
 
-  <dialog class="panel contact" id="contact" aria-labelledby="contact-title">
+  <dialog class="panel contact" id="contact" data-anim="seeds" aria-labelledby="contact-title">
     <header>
       <h2 id="contact-title">Contact</h2>
       <button class="close" type="button">Close</button>
@@ -1023,6 +1092,35 @@
       document.body.classList.remove("away");
     }
 
+    // Contact: seeds blow in and spell a greeting in the sky, the details
+    // fade in beneath, and on close the wind carries the seeds off again.
+    async function openSeeds(panel) {
+      document.body.classList.add("away");
+      if (!motionOK) return panel.showModal();
+
+      panel.classList.add("seeded", "blank");
+      await document.fonts.load('400 100px "Instrument Serif"');
+      const bottom = formSeeds("say hello");
+      panel.style.setProperty("--top", `${bottom + 4}px`);
+      await wait(1900);
+      panel.showModal();
+      requestAnimationFrame(() => panel.classList.remove("blank"));
+      await wait(600);
+    }
+
+    async function closeSeeds(panel) {
+      if (motionOK) {
+        panel.classList.add("blank");
+        await wait(350);
+      }
+      panel.close();
+      if (motionOK) {
+        releaseSeeds();
+        await wait(700);
+      }
+      document.body.classList.remove("away");
+    }
+
     // Coming back from a post via the back button can restore the page
     // mid-exit, so start fresh.
     addEventListener("pageshow", (e) => {
@@ -1040,6 +1138,7 @@
       current = panel;
       if (panel.dataset.anim === "paper") await openPaper(panel);
       else if (panel.dataset.anim === "terminal") await openTerminal(panel);
+      else if (panel.dataset.anim === "seeds") await openSeeds(panel);
       else await openScreen(panel);
       busy = false;
     }
@@ -1050,6 +1149,7 @@
       const panel = current;
       if (panel.dataset.anim === "paper") await closePaper(panel);
       else if (panel.dataset.anim === "terminal") await closeTerminal(panel);
+      else if (panel.dataset.anim === "seeds") await closeSeeds(panel);
       else await closeScreen(panel);
       current = null;
       busy = false;
@@ -1414,6 +1514,139 @@
       }
 
       if (!reduceMotion) requestAnimationFrame(draw);
+    }
+
+    // Seeds that gather into words (Contact), drawn on their own layer above
+    // the scene so they stay readable at night. Each flies a curved path in
+    // on the wind to a point sampled from the text, breathes there, and
+    // blows away when released.
+    const wordCanvas = document.querySelector(".word-seeds");
+    const wctx = wordCanvas.getContext("2d");
+    let formation = [];
+    let formationLast = 0;
+
+    // Points along the text, drawn in the heading font and centred high in
+    // the sky, clear of the Mac. Returns them with where the lettering ends.
+    function sampleText(text) {
+      const off = document.createElement("canvas");
+      const g = off.getContext("2d", { willReadFrequently: true });
+      g.font = '400 200px "Instrument Serif"';
+      const fs = Math.min((200 * innerWidth * 0.8) / g.measureText(text).width, 170, innerHeight * 0.18);
+      off.width = Math.ceil(innerWidth);
+      off.height = Math.ceil(fs * 1.6);
+      g.font = `400 ${fs}px "Instrument Serif"`;
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.fillText(text, off.width / 2, off.height / 2);
+
+      const data = g.getImageData(0, 0, off.width, off.height).data;
+      const step = Math.max(3, fs / 24);
+      const points = [];
+      for (let y = 0; y < off.height; y += step) {
+        for (let x = 0; x < off.width; x += step) {
+          if (data[(Math.floor(y) * off.width + Math.floor(x)) * 4 + 3] > 140) {
+            points.push({ x: x + rand(-step, step) * 0.25, y: y + rand(-step, step) * 0.25 });
+          }
+        }
+      }
+
+      // Centre the lettering itself (not the font box) at the target height.
+      const ys = points.map((p) => p.y);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+      const centre = Math.max(innerHeight * 0.13, (maxY - minY) / 2 + 20);
+      const shift = centre - (minY + maxY) / 2;
+      for (const p of points) p.y += shift;
+      return { points, step, bottom: maxY + shift + step };
+    }
+
+    function formSeeds(text) {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      wordCanvas.width = innerWidth * dpr;
+      wordCanvas.height = innerHeight * dpr;
+      wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const { points, step, bottom } = sampleText(text);
+      const w = innerWidth;
+      const h = innerHeight;
+      const scale = w / 1600;
+      formation = points.map((p) => {
+        const fromLeft = Math.random() < 0.75;
+        const x0 = fromLeft ? rand(-0.2, 0.05) * w : rand(0, w);
+        const y0 = fromLeft ? p.y + rand(-0.25, 0.25) * h : h * rand(0.8, 0.95);
+        const swirl = rand(60, 170) * scale * (Math.random() < 0.5 ? -1 : 1);
+        return {
+          sprite: sprites.sharp[Math.floor(Math.random() * 2)],
+          size: step * rand(2.4, 3),
+          alpha: rand(0.88, 1),
+          x0, y0,
+          c1x: x0 + rand(0.15, 0.35) * w, c1y: y0 + rand(-80, 40) * scale,
+          c2x: p.x - swirl, c2y: p.y + swirl * 0.6,
+          tx: p.x, ty: p.y,
+          x: x0, y: y0, vx: 0, vy: 0,
+          t: 0, delay: rand(0, 0.7), dur: rand(1.3, 2),
+          phase: rand(0, Math.PI * 2),
+          angle: rand(-0.5, 0.5),
+          tilt: rand(0.7, 1),
+          free: false,
+        };
+      });
+      formationLast = performance.now();
+      requestAnimationFrame(drawFormation);
+      return bottom;
+    }
+
+    function releaseSeeds() {
+      const scale = innerWidth / 1600;
+      for (const s of formation) {
+        s.free = true;
+        s.vx = rand(80, 220) * scale;
+        s.vy = rand(-40, 10) * scale;
+      }
+    }
+
+    function drawFormation(now) {
+      const dt = Math.min((now - formationLast) / 1000, 0.1);
+      formationLast = now;
+      const scale = innerWidth / 1600;
+      wctx.clearRect(0, 0, innerWidth, innerHeight);
+
+      for (let i = formation.length - 1; i >= 0; i--) {
+        const s = formation[i];
+        s.phase += dt * 2;
+
+        if (s.free) {
+          s.vx += 40 * scale * dt;
+          s.x += s.vx * dt;
+          s.y += (s.vy + Math.cos(s.phase) * 8 * scale) * dt;
+          s.angle += dt * 0.8;
+          if (s.x > innerWidth + 40 || s.y < -40) {
+            formation.splice(i, 1);
+            continue;
+          }
+        } else {
+          s.t += dt;
+          const p = Math.min(Math.max((s.t - s.delay) / s.dur, 0), 1);
+          const e = 1 - (1 - p) ** 3;
+          const u = 1 - e;
+          s.x = u * u * u * s.x0 + 3 * u * u * e * s.c1x + 3 * u * e * e * s.c2x + e * e * e * s.tx;
+          s.y = u * u * u * s.y0 + 3 * u * u * e * s.c1y + 3 * u * e * e * s.c2y + e * e * e * s.ty;
+          // Once landed, breathe gently in place.
+          s.x += Math.sin(s.phase) * 0.8 * e;
+          s.y += Math.cos(s.phase * 0.8) * 0.8 * e;
+          s.angle *= 0.98;
+        }
+
+        wctx.save();
+        wctx.globalAlpha = s.alpha;
+        wctx.translate(s.x, s.y);
+        wctx.rotate(s.angle);
+        wctx.scale(1, s.tilt);
+        wctx.drawImage(s.sprite, -s.size / 2, -s.size * 0.42, s.size, s.size);
+        wctx.restore();
+      }
+
+      if (formation.length) requestAnimationFrame(drawFormation);
     }
 
     resize();
