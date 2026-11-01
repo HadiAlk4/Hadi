@@ -6,7 +6,7 @@
   <title>Hadi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --sky-top: #2e64ad;
@@ -358,7 +358,7 @@
       transform: translateY(-100%);
     }
 
-    body.paper footer { opacity: 0; pointer-events: none; }
+    body.away footer { opacity: 0; pointer-events: none; }
 
     .panel.writing {
       --ink: #1d1c1a;
@@ -480,6 +480,105 @@
 
     .contact-list .value {
       font-size: clamp(18px, 1.5vw, 22px);
+    }
+
+    /* About me: the Mac's own screen turns into a terminal, then the window
+       lifts off the glass toward you. No zoom. */
+    .crt { container-type: size; }
+
+    .term {
+      padding: 12cqh 9cqw;
+      background: #040805;
+      color: #8dffa8;
+      font: 500 9cqh/1.3 "IBM Plex Mono", ui-monospace, monospace;
+      text-shadow: 0 0 0.5em rgba(120, 255, 160, 0.6);
+      opacity: 0;
+    }
+
+    .term.on { opacity: 1; }
+
+    .panel.about {
+      --phosphor: #a6ffbd;
+      --dim: #5fc982;
+      width: min(720px, calc(100% - 32px));
+      border: 1px solid rgba(120, 255, 160, 0.22);
+      border-radius: 10px;
+      background: rgba(3, 9, 5, 0.94);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      color: var(--phosphor);
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      text-shadow: 0 0 0.45em rgba(120, 255, 160, 0.35);
+      box-shadow: 0 0 60px rgba(80, 255, 140, 0.12), 0 30px 70px rgba(0, 0, 0, 0.5);
+    }
+
+    .panel.about::backdrop { background: rgba(5, 10, 30, 0.3); }
+
+    .panel.about header {
+      padding: 14px 20px;
+      border-bottom-color: rgba(120, 255, 160, 0.15);
+    }
+
+    .panel.about h2 {
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--dim);
+    }
+
+    .panel.about .close {
+      font-size: 14px;
+      color: var(--dim);
+    }
+
+    .panel.about .close:hover,
+    .panel.about .close:focus-visible { color: var(--phosphor); }
+    .panel.about .close:focus-visible { box-shadow: 0 0 0 1.5px rgba(120, 255, 160, 0.5); }
+
+    .term-body {
+      padding: 20px 24px 26px;
+      font-size: 15px;
+      line-height: 1.7;
+      overflow-y: auto;
+    }
+
+    .term-body .ps1 { color: var(--dim); }
+
+    .term-body .out {
+      display: grid;
+      grid-template-columns: 11ch 1fr;
+      column-gap: 2ch;
+      margin: 14px 0;
+    }
+
+    .term-body dt { color: var(--dim); }
+    .term-body dd { margin: 0; }
+
+    .term-body a {
+      color: var(--phosphor);
+      text-decoration-color: rgba(166, 255, 189, 0.4);
+      text-underline-offset: 3px;
+    }
+
+    .term-body a:hover { text-decoration-color: currentColor; }
+
+    .block-cursor {
+      display: inline-block;
+      width: 0.6em;
+      height: 1.15em;
+      vertical-align: -0.2em;
+      background: currentColor;
+      animation: blink 1s steps(1) infinite;
+    }
+
+    /* Output prints a line at a time. */
+    .panel.about.blank .term-body { opacity: 0; }
+    .panel.about.printing .out > *,
+    .panel.about.printing .prompt { visibility: hidden; }
+    .panel.about.printing .out > .shown { visibility: visible; }
+
+    @media (max-width: 760px) {
+      .term-body .out { grid-template-columns: 1fr; }
+      .term-body dd + dt { margin-top: 10px; }
     }
 
     .projects .groups {
@@ -614,6 +713,7 @@
     <img class="plate" src="scene.jpg" alt="">
     <div class="halo"></div>
     <div class="crt">
+      <div class="term"><span class="term-line"></span></div>
       <canvas class="crt-noise" width="160" height="120"></canvas>
       <div class="crt-roll"></div>
       <div class="crt-flash"></div>
@@ -646,7 +746,7 @@
     <nav class="col" aria-label="About">
       <h2>About</h2>
       <ul>
-        <li><a href="#">About me</a></li>
+        <li><a href="#about">About me</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
@@ -675,6 +775,25 @@
       <button class="close" type="button">Close</button>
     </header>
     <ol class="posts"></ol>
+  </dialog>
+
+  <dialog class="panel about" id="about" data-anim="terminal" aria-labelledby="about-title">
+    <header>
+      <h2 id="about-title">hadi@macintosh: ~</h2>
+      <button class="close" type="button">[ close ]</button>
+    </header>
+    <div class="term-body">
+      <p><span class="ps1">hadi@macintosh ~ %</span> whoami</p>
+      <dl class="out">
+        <dt>name</dt><dd>Hadi Alkhub</dd>
+        <dt>studying</dt><dd>Bachelor of Software Engineering (Honours), Griffith University</dd>
+        <dt>focus</dt><dd>Embedded systems, operating systems and low-level C, plus the odd web app</dd>
+        <dt>building</dt><dd>A preemptive RTOS for the Raspberry Pi Pico, and Git rebuilt in Rust</dd>
+        <dt>awards</dt><dd>Griffith Award for Academic Excellence, 2025</dd>
+        <dt>elsewhere</dt><dd><a href="https://github.com/HadiAlk4" target="_blank" rel="noopener">github</a> · <a href="https://www.linkedin.com/in/hadialkhub" target="_blank" rel="noopener">linkedin</a> · <a href="https://x.com/HadiAlk4" target="_blank" rel="noopener">x</a></dd>
+      </dl>
+      <p class="prompt"><span class="ps1">hadi@macintosh ~ %</span> <span class="block-cursor"></span></p>
+    </div>
   </dialog>
 
   <dialog class="panel contact" id="contact" aria-labelledby="contact-title">
@@ -826,6 +945,84 @@
       location.href = link.href;
     });
 
+    // About me: the screen turns into a terminal and types `whoami` right
+    // there on the Mac, then the window lifts off the glass and the output
+    // prints line by line.
+    const term = document.querySelector(".term");
+    const termLine = term.querySelector(".term-line");
+    let printRun = 0;
+
+    async function printOutput(panel) {
+      const run = ++printRun;
+      const lines = [...panel.querySelectorAll(".out > *")];
+      panel.classList.add("printing");
+      for (const line of lines) line.classList.remove("shown");
+      for (let i = 0; i < lines.length; i += 2) {
+        await wait(140);
+        if (run !== printRun) return;
+        lines[i].classList.add("shown");
+        lines[i + 1]?.classList.add("shown");
+      }
+      await wait(200);
+      if (run === printRun) panel.classList.remove("printing");
+    }
+
+    function stopPrinting(panel) {
+      printRun++;
+      panel.classList.remove("printing");
+    }
+
+    async function openTerminal(panel) {
+      document.body.classList.add("away");
+      if (!motionOK) return panel.showModal();
+
+      screenEl.classList.add("tuning");
+      await wait(350);
+      termLine.textContent = "~ % whoami";
+      term.classList.add("on");
+      screenEl.classList.remove("tuning");
+      await typewriter(termLine, { speed: 110, delay: 300 }).done;
+      await wait(450);
+
+      panel.classList.add("blank");
+      panel.showModal();
+      const { dx, dy, sx, sy } = onto(screenEl, panel);
+      await play(panel, [
+        { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, opacity: 0.3 },
+        { transform: "translate(0px, 0px) scale(1, 1)", opacity: 1 },
+      ], { duration: 700, easing: "cubic-bezier(0.2, 0.75, 0.25, 1)" });
+      panel.style.transform = "";
+      panel.style.opacity = "";
+      panel.classList.remove("blank");
+      printOutput(panel);
+    }
+
+    async function closeTerminal(panel) {
+      stopPrinting(panel);
+      if (motionOK) {
+        panel.classList.add("blank");
+        const { dx, dy, sx, sy } = onto(screenEl, panel);
+        await play(panel, [
+          { transform: "translate(0px, 0px) scale(1, 1)", opacity: 1 },
+          { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, opacity: 0.3 },
+        ], { duration: 500, easing: "cubic-bezier(0.5, 0, 0.3, 1)" });
+      }
+      panel.close();
+      panel.style.transform = "";
+      panel.style.opacity = "";
+      panel.classList.remove("blank");
+      if (motionOK) {
+        await wait(250);
+        screenEl.classList.add("tuning");
+        await wait(250);
+        term.classList.remove("on");
+        termLine.textContent = "";
+        await wait(200);
+        screenEl.classList.remove("tuning");
+      }
+      document.body.classList.remove("away");
+    }
+
     // Coming back from a post via the back button can restore the page
     // mid-exit, so start fresh.
     addEventListener("pageshow", (e) => {
@@ -842,6 +1039,7 @@
       busy = true;
       current = panel;
       if (panel.dataset.anim === "paper") await openPaper(panel);
+      else if (panel.dataset.anim === "terminal") await openTerminal(panel);
       else await openScreen(panel);
       busy = false;
     }
@@ -851,6 +1049,7 @@
       busy = true;
       const panel = current;
       if (panel.dataset.anim === "paper") await closePaper(panel);
+      else if (panel.dataset.anim === "terminal") await closeTerminal(panel);
       else await closeScreen(panel);
       current = null;
       busy = false;
@@ -903,9 +1102,9 @@
     const feed = document.querySelector(".feed");
     const sheet = feed.querySelector(".sheet");
 
-    // Transform that shrinks the panel onto the sheet poking out of the slot.
-    function onSheet(panel) {
-      const from = sheet.getBoundingClientRect();
+    // Offsets and scales that shrink the panel onto another element.
+    function onto(el, panel) {
+      const from = el.getBoundingClientRect();
       const to = panel.getBoundingClientRect();
       const dx = from.left + from.width / 2 - (to.left + to.width / 2);
       const dy = from.top + from.height / 2 - (to.top + to.height / 2);
@@ -933,7 +1132,7 @@
     }
 
     async function openPaper(panel) {
-      document.body.classList.add("paper");
+      document.body.classList.add("away");
       if (!motionOK) return panel.showModal();
 
       feed.classList.add("on");
@@ -942,7 +1141,7 @@
 
       panel.classList.add("blank");
       panel.showModal();
-      const { dx, dy, sx, sy } = onSheet(panel);
+      const { dx, dy, sx, sy } = onto(sheet, panel);
       feed.classList.remove("on");
       const mid = (a) => a + (1 - a) * 0.55;
       await play(panel, [
@@ -960,7 +1159,7 @@
       stopTitles();
       if (motionOK) {
         panel.classList.add("blank");
-        const { dx, dy, sx, sy } = onSheet(panel);
+        const { dx, dy, sx, sy } = onto(sheet, panel);
         await play(panel, [
           { transform: "perspective(1400px) translate(0px, 0px) scale(1, 1) rotateX(0deg)" },
           { transform: `perspective(1400px) translate(${dx}px, ${dy}px) scale(${sx}, ${sy}) rotateX(0deg)` },
@@ -976,7 +1175,7 @@
           { duration: 550, easing: "cubic-bezier(0.5, 0, 0.7, 0.4)" });
         feed.classList.remove("on");
       }
-      document.body.classList.remove("paper");
+      document.body.classList.remove("away");
     }
 
     // Open from a link or a URL hash; close with the button, Escape or a
@@ -1002,7 +1201,7 @@
     }
 
     addEventListener("resize", () => {
-      if (current && current.dataset.anim !== "paper" && motionOK) stage.style.transform = zoomTransform();
+      if (current && !current.dataset.anim && motionOK) stage.style.transform = zoomTransform();
     });
     addEventListener("hashchange", syncPanels);
     syncPanels();
