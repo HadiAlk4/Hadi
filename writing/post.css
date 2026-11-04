@@ -16,6 +16,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* The Apple Pencil cursor from the home page. */
+html { cursor: url("../cursor/pencil.svg") 3 3, auto; }
+a, button, [role="button"] { cursor: url("../cursor/pencil-tap.svg") 3 3, pointer; }
+
 /* The home page scene, framed the same way, blurred and dimmed behind the
    paper. */
 .scene {

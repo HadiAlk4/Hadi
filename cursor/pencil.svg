@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="body" x1="0" y1="-3.2" x2="0" y2="3.2" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#f6f6f8"/>
+      <stop offset="1" stop-color="#d9d9e0"/>
+    </linearGradient>
+    <linearGradient id="cone" x1="0" y1="-3.2" x2="0" y2="3.2" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fbfbfd"/>
+      <stop offset="1" stop-color="#cfcfd6"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0.6" dy="1.1" stdDeviation="0.9" flood-color="#0b1a3a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- Drawn lying along the x-axis with the nib at the origin, then turned
+       so the nib points up-left at (3,3), which is the cursor's hotspot. -->
+  <g transform="translate(3 3) rotate(45)" filter="url(#shadow)">
+    <!-- barrel, with the rounded cap -->
+    <path d="M8.6 -3.2 H35 a1.8 1.8 0 0 1 1.8 1.8 V1.4 a1.8 1.8 0 0 1 -1.8 1.8 H8.6 Z"
+          fill="url(#body)" stroke="#1d1c1a" stroke-opacity="0.45" stroke-width="0.55"/>
+    <!-- the flat side and the seam near the cap -->
+    <path d="M9.4 -2.05 H35.6" stroke="#ffffff" stroke-width="0.7" stroke-linecap="round"/>
+    <path d="M32.2 -3.2 V3.2" stroke="#b9b9c2" stroke-width="0.5"/>
+    <!-- tapered tip -->
+    <path d="M1.3 -0.75 L8.6 -3.2 V3.2 L1.3 0.75 Z"
+          fill="url(#cone)" stroke="#1d1c1a" stroke-opacity="0.45" stroke-width="0.55" stroke-linejoin="round"/>
+    <!-- nib -->
+    <path d="M0 0 L1.5 -0.85 V0.85 Z" fill="#3a3a3c" stroke="#3a3a3c" stroke-width="0.5" stroke-linejoin="round"/>
+  </g>
+</svg>
