@@ -27,9 +27,10 @@
     }
 
     /* An Apple Pencil for the cursor; its nib touches down on anything
-       clickable. */
+       clickable. Turned off for now: uncomment to bring it back.
     html { cursor: url("cursor/pencil.svg") 3 3, auto; }
     a, button, [role="button"] { cursor: url("cursor/pencil-tap.svg") 3 3, pointer; }
+    */
 
     /* The stage keeps the scene's aspect ratio so the screen effects always
        line up with the Mac, whatever the window size. */
@@ -327,6 +328,7 @@
       color: var(--muted);
       background: none;
       border: 0;
+      cursor: pointer;
       padding: 6px 10px;
       border-radius: 8px;
       outline: none;
