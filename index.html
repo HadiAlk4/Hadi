@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="scene.webp" type="image/webp" fetchpriority="high">
+  <link rel="preload" as="image" href="scene.jpg" type="image/jpeg" fetchpriority="high">
   <style>
     :root {
       --sky-top: #2e64ad;
@@ -68,8 +70,14 @@
     body:not(.ready) * { transition: none !important; }
 
     /* A still of the scene with the sky cleaned up; everything that moves
-       is drawn on top. */
-    .stage .plate { object-fit: cover; }
+       is drawn on top. The picture wrapper is the stage child, so the plate
+       has to fill that box itself. */
+    .stage .plate {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
     /* The Mac's screen, traced from the plate. */
     .crt {
@@ -783,7 +791,10 @@
 </head>
 <body>
   <div class="stage" aria-hidden="true">
-    <img class="plate" src="scene.jpg" alt="">
+    <picture>
+      <source srcset="scene.webp" type="image/webp">
+      <img class="plate" src="scene.jpg" alt="" fetchpriority="high" width="1902" height="1080">
+    </picture>
     <div class="halo"></div>
     <div class="crt">
       <div class="term"><span class="term-line"></span></div>
